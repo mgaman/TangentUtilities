@@ -1,5 +1,7 @@
 # Editors
 .vscode/
+# SVG
+*.svg 
 
 
 # Source for the following rules: https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
@@ -114,3 +116,5 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+__pycache__/checkPlacement.cpython-37.pyc
+__pycache__/tangentUtilities.cpython-36.pyc
