@@ -2,11 +2,11 @@
 #  Author: David Henry  https://github.com/mgaman
 #
 #  This library uses its own generic types of Point, Line and Circle
-#  Use my XXX library to interface to svgwrite
+#  Use my svgTangent library to interface to svgwrite
 #
 from enum import Enum
 import math
-from math import sin,cos
+from math import sin,cos,tan,acos,asin,atan
 
 class Point:
     def __init__(self,x,y):
@@ -116,4 +116,60 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     else:
         csPlace = smallCirclePlacement.ToRight
     print(str(solType)+','+str(csPlace))
-                
+    if solType == tangentShape.parallel:
+        print('Parallel TBD')
+        return []
+    else:   # divergent   
+        # H1 is line joining centers, draw right angled triangle where H1 is hypoteneuse
+        if csPlace == smallCirclePlacement.ToLeft or csPlace == smallCirclePlacement.ToLeftSameY:
+            opposite = cbig.center.y - csmall.center.y
+            adjacent = cbig.center.x - csmall.center.x
+            h1 = math.sqrt(opposite**2 + adjacent**2)
+            # a1 angle of hypoteneuse anticlockwise from x axis
+            a1 = math.atan(abs(opposite)/abs(adjacent))
+            # h2 is hypoteneuse of triangle where h1 is adjacent and opposite is on cbig radius
+            h2 = math.sqrt(pow(h1,2) - pow(cbig.radius - csmall.radius,2))
+            # angle a2 between h1 and h2
+            a2 = math.acos(h2/h1)
+            # we now know 1 point of a rectangle (csmall center), 2 sides csmall radius and H2
+            # and angle of H2 (a1 ± a2)
+            # calculate the other 3 corners and from there the tangent (which is the opposite 
+            # side to H2
+            tpoints = []
+            if opposite >= 0:
+                # 1st tangent
+                side = completeLine(csmall.center,a1 + a2 + math.radians(90),csmall.radius)
+                tpoints.append(side)
+                endh2 = completeLine(csmall.center,a1 + a2 ,h2)
+                side = completeLine(endh2,a1 + a2 + math.radians(90),csmall.radius)
+                tpoints.append(side)
+                # second tangent
+                side = completeLine(csmall.center,a1 - a2 - math.radians(90),csmall.radius)
+                tpoints.append(side)
+                endh2 = completeLine(csmall.center,a1 - a2 ,h2)
+                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
+                tpoints.append(side)
+            else:
+                # 1st tangent
+                side = completeLine(csmall.center,a1 - a2 - math.radians(90),csmall.radius)
+                tpoints.append(side)
+                endh2 = completeLine(csmall.center,a1 - a2 ,h2)
+                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
+                tpoints.append(side)
+                # 2nd tangent
+                side = completeLine(csmall.center,a1 - a2 + math.radians(90),csmall.radius)
+                tpoints.append(side)
+                endh2 = completeLine(csmall.center,a1 + a2 ,h2)
+                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
+                tpoints.append(side)
+            return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]
+            
+#   Given the starting point of a line, its angle to the X axis (radian) and length
+#   Calculate the end point
+#
+def completeLine(start,angle,length):  # radians
+# do sanity checks on paramaters if you are pedantic
+#    print('calc on line angle '+"{:.4f}".format(math.degrees(angle)))
+    op = length * sin(angle)
+    ad = length * cos(angle)
+    return Point(start.x + ad, start.y + op)
