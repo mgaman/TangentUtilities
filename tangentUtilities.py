@@ -35,12 +35,14 @@ class Circle:
             print ('Circle values must be a number and a point')
 
 class smallCirclePlacement(Enum):
-    ToLeftSameY = 0
-    ToRightSameY = 1
+    LeftSameY = 0
+    RightSameY = 1
     AboveSameX = 2
     BelowSameX = 3
-    ToLeft = 4
-    ToRight = 5
+    LeftAbove = 4
+    LeftBelow = 5
+    RightAbove = 6
+    RightBelow = 7
 class tangentShape(Enum):
     parallel = 0
     divergent = 1
@@ -106,22 +108,27 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
             csPlace = smallCirclePlacement.AboveSameX
         else:
             csPlace = smallCirclePlacement.BelowSameX
-    elif csmall.center.y == cbig.center.y:
+    elif csmall.center.y == cbig.center.y: # same Y check x
         if csmall.center.x < cbig.center.x:
-            csPlace = smallCirclePlacement.ToLeftSameY
+            csPlace = smallCirclePlacement.LeftSameY
         else:
-            csPlace = smallCirclePlacement.ToRightSameY
-    elif csmall.center.x < cbig.center.x:
-            csPlace = smallCirclePlacement.ToLeft
+            csPlace = smallCirclePlacement.RightSameY
+    elif csmall.center.x < cbig.center.x:  # small to left
+        if csmall.center.y > cbig.center.y:
+            csPlace = smallCirclePlacement.LeftAbove
+        else:
+            csPlace = smallCirclePlacement.LeftBelow
+    elif csmall.center.y > cbig.center.y:  # small to right
+            csPlace = smallCirclePlacement.RightAbove
     else:
-        csPlace = smallCirclePlacement.ToRight
+        csPlace = smallCirclePlacement.RightBelow
     print(str(solType)+','+str(csPlace))
     if solType == tangentShape.parallel:
         print('Parallel TBD')
         return []
     else:   # divergent   
         # H1 is line joining centers, draw right angled triangle where H1 is hypoteneuse
-        if csPlace == smallCirclePlacement.ToLeft or csPlace == smallCirclePlacement.ToLeftSameY:
+        if csPlace == smallCirclePlacement.LeftAbove or csPlace == smallCirclePlacement.LeftSameY:
             opposite = cbig.center.y - csmall.center.y
             adjacent = cbig.center.x - csmall.center.x
             h1 = math.sqrt(opposite**2 + adjacent**2)

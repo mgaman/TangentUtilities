@@ -7,6 +7,6 @@ from svgTest import testSVGLeft
 
 #checkTangentTypes()
 #checkParallelPlacements()
-#checkDivergentPlacements()
+checkDivergentPlacements()
 #checkLeftTangents()
-testSVGLeft()
+#testSVGLeft()
