@@ -22,37 +22,35 @@ class Line:
         if isinstance(begin,Point) and isinstance(end,Point):
             self.begin = begin
             self.end = end
+            self.length = math.sqrt((self.end.y - self.begin.y)**2 + (self.end.x - self.begin.x)**2)
+            opposite = self.end.y - self.begin.y
+            adjacent = self.end.x - self.begin.x
+            if opposite == 0:  # line is horizontal
+                if self.begin.x < self.end.x: # extends to the right
+                    an0 = math.radians(0)
+                else:
+                    an0 = math.radians(180)
+            elif adjacent == 0:  # line is vertical
+                if self.begin.y < self.end.y: # extends upwards
+                    an0 = math.radians(90)
+                else:
+                    an0 = math.radians(270)
+            elif self.begin.x > self.end.x:  # extends to the right
+                an0 = math.atan(abs(opposite)/abs(adjacent))
+                if self.begin.y > self.end.y: # and up (0-90 degrees)
+                    pass  # same an0
+                else:                                 # and down 270 to 360 
+                    an0 = 360 - math.degrees(an0)
+                    an0 = math.radians(an0)
+            elif self.begin.y > self.end.y:   # extends to the left and up 90 to 180
+                an0 = math.atan(abs(opposite)/abs(adjacent))
+                an0 = math.radians(180) - an0
+            else:                                     # extends to the left and down 180 to 270
+                an0 = math.atan(abs(opposite)/abs(adjacent))
+                an0 = math.radians(180) + an0
+            self.slope =an0
         else:
             print('Line values must be 2 points')
-    def length(self):
-        return math.sqrt((self.end.y - self.begin.y)**2 + (self.end.x - self.begin.x)**2)
-    def slope(self):
-        opposite = self.end.y - self.begin.y
-        adjacent = self.end.x - self.begin.x
-        if opposite == 0:  # line is horizontal
-            if self.begin.x < self.end.x: # extends to the right
-                an0 = math.radians(0)
-            else:
-                an0 = math.radians(180)
-        elif adjacent == 0:  # line is vertical
-            if self.begin.y < self.end.y: # extends upwards
-                an0 = math.radians(90)
-            else:
-                an0 = math.radians(270)
-        elif self.begin.x > self.end.x:  # extends to the right
-            an0 = math.atan(abs(opposite)/abs(adjacent))
-            if self.begin.y > self.end.y: # and up (0-90 degrees)
-                pass  # same an0
-            else:                                 # and down 270 to 360 
-                an0 = 360 - math.degrees(an0)
-                an0 = math.radians(an0)
-        elif self.begin.y > self.end.y:   # extends to the left and up 90 to 180
-            an0 = math.atan(abs(opposite)/abs(adjacent))
-            an0 = math.radians(180) - an0
-        else:                                     # extends to the left and down 180 to 270
-            an0 = math.atan(abs(opposite)/abs(adjacent))
-            an0 = math.radians(180) + an0
-        return an0
 class Circle:
     def __init__(self,c,r):
     # parameters must be numeric and a point
@@ -75,8 +73,8 @@ class Rectangle:
     # given the initial data, calculate the remaining lines and corners
     def complete(self):
         # length irrespective of orientation of the line however angle of slope (an0) is
-        side0length = self.sides[0].length()
-        an0 = self.sides[0].slope()
+        side0length = self.sides[0].length
+        an0 = self.sides[0].slope
         # calculate 2nd line
         ann = an0 + self.angleIncrement
         pt = completeLine(self.sides[0].end,ann,self.side1length)
@@ -90,8 +88,11 @@ class Rectangle:
         pt = completeLine(self.sides[2].end,ann,self.side1length)
         self.sides.append(Line(self.sides[2].end,pt))
     def toString(self):
+        strs = []
         for i in range(len(self.sides)):
-            print('Line '+ str(i)+': begin x '+str(self.sides[i].begin.x)+',y '+str(self.sides[i].begin.y)+' end x '+str(self.sides[i].end.x)+',y '+str(self.sides[i].end.y))
+            strs.append('Line '+ str(i)+': begin x '+'{:.4f}'.format(self.sides[i].begin.x)+',y '+'{:.4f}'.format(self.sides[i].begin.y)+' end x '+"{:.4f}".format(self.sides[i].end.x)+',y '+"{:.4f}".format(self.sides[i].end.y))
+            strs.append('>>> length '+'{:.4f}'.format(self.sides[i].length)+' slope '+'{:.4f}'.format(math.degrees(self.sides[i].slope)))
+        return strs
 class smallCirclePlacement(Enum):
     LeftSameY = 0
     RightSameY = 1
@@ -113,7 +114,7 @@ class tangentAvailable(Enum):
     twoExternalTwoInternal = 4 # circles adjacent, no touching
 class tangentType(Enum):
     Internal = 1
-    External = 2#
+    External = 2
 #
 #  Discover how many tangents exist between 2 circles
 #  
@@ -173,7 +174,7 @@ def getPlacement(csmall: Circle,cbig: Circle):
 #  Examine circles to determine solution strategy
 #  No sanity checks done to see if solution possible
 # 
-def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
+def Tangentsold(ca : Circle,cb : Circle,solution=tangentType.External):
     if ca.radius == cb.radius:
         solType = tangentShape.parallel
     else:
@@ -235,11 +236,13 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
                 side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
                 tpoints.append(side)
             return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]            
+def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
+    return
 #
 #   Given the starting point of a line, its angle to the X axis (radian) and length
 #   Calculate the end point
 #
-def completeLine(start: Point,angle,length):  # radians
-    op = length * sin(angle)
-    ad = length * cos(angle)
+def completeLine(start: Point,angle,len):  # radians
+    op = len * sin(angle)
+    ad = len * cos(angle)
     return Point(start.x + ad, start.y + op)

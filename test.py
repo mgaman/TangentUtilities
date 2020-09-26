@@ -13,3 +13,4 @@ from checkRectangle import *
 #checkLeftTangents()
 #testSVGLeft()
 checkVertical()
+#checkHorizontal()
