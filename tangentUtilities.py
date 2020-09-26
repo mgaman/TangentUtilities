@@ -53,7 +53,6 @@ class Line:
             an0 = math.atan(abs(opposite)/abs(adjacent))
             an0 = math.radians(180) + an0
         return an0
-
 class Circle:
     def __init__(self,c,r):
     # parameters must be numeric and a point
