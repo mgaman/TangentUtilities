@@ -24,6 +24,35 @@ class Line:
             self.end = end
         else:
             print('Line values must be 2 points')
+    def length(self):
+        return math.sqrt((self.end.y - self.begin.y)**2 + (self.end.x - self.begin.x)**2)
+    def slope(self):
+        opposite = self.end.y - self.begin.y
+        adjacent = self.end.x - self.begin.x
+        if opposite == 0:  # line is horizontal
+            if self.begin.x < self.end.x: # extends to the right
+                an0 = math.radians(0)
+            else:
+                an0 = math.radians(180)
+        elif adjacent == 0:  # line is vertical
+            if self.begin.y < self.end.y: # extends upwards
+                an0 = math.radians(90)
+            else:
+                an0 = math.radians(270)
+        elif self.begin.x > self.end.x:  # extends to the right
+            an0 = math.atan(abs(opposite)/abs(adjacent))
+            if self.begin.y > self.end.y: # and up (0-90 degrees)
+                pass  # same an0
+            else:                                 # and down 270 to 360 
+                an0 = 360 - math.degrees(an0)
+                an0 = math.radians(an0)
+        elif self.begin.y > self.end.y:   # extends to the left and up 90 to 180
+            an0 = math.atan(abs(opposite)/abs(adjacent))
+            an0 = math.radians(180) - an0
+        else:                                     # extends to the left and down 180 to 270
+            an0 = math.atan(abs(opposite)/abs(adjacent))
+            an0 = math.radians(180) + an0
+        return an0
 
 class Circle:
     def __init__(self,c,r):
@@ -33,7 +62,37 @@ class Circle:
             self.center = c
         else:
             print ('Circle values must be a number and a point')
-
+class rectangleDirection(Enum):
+    clockwise = 2
+    anticlockwise = 3
+class Rectangle:
+    def __init__(self,line0: Line,line1length,direction:rectangleDirection ):  # line0,line1 always perpendicular
+        self.sides = [line0]
+        self.side1length = line1length
+        if direction == rectangleDirection.clockwise:
+            self.angleIncrement = -math.radians(90)
+        else:
+            self.angleIncrement = math.radians(90)
+    # given the initial data, calculate the remaining lines and corners
+    def complete(self):
+        # length irrespective of orientation of the line however angle of slope (an0) is
+        side0length = self.sides[0].length()
+        an0 = self.sides[0].slope()
+        # calculate 2nd line
+        ann = an0 + self.angleIncrement
+        pt = completeLine(self.sides[0].end,ann,self.side1length)
+        self.sides.append(Line(self.sides[0].end,pt))
+        # calculate 3rd line
+        ann = ann + self.angleIncrement
+        pt = completeLine(self.sides[1].end,ann,side0length)
+        self.sides.append(Line(self.sides[1].end,pt))
+        # calculate 4th line (redundant really)
+        ann = ann + self.angleIncrement
+        pt = completeLine(self.sides[2].end,ann,self.side1length)
+        self.sides.append(Line(self.sides[2].end,pt))
+    def toString(self):
+        for i in range(len(self.sides)):
+            print('Line '+ str(i)+': begin x '+str(self.sides[i].begin.x)+',y '+str(self.sides[i].begin.y)+' end x '+str(self.sides[i].end.x)+',y '+str(self.sides[i].end.y))
 class smallCirclePlacement(Enum):
     LeftSameY = 0
     RightSameY = 1
@@ -55,7 +114,7 @@ class tangentAvailable(Enum):
     twoExternalTwoInternal = 4 # circles adjacent, no touching
 class tangentType(Enum):
     Internal = 1
-    External = 2
+    External = 2#
 #
 #  Discover how many tangents exist between 2 circles
 #  
@@ -86,23 +145,11 @@ def numTangents(ca,cb):  # ca,cb are Circle objects
         return tangentAvailable.twoExternalSingleInternal
     elif D > r0+r1:
         return tangentAvailable.twoExternalTwoInternal
-
 #
-#  Examine circles to determine solution strategy
-#  No sanity checks done to see if solution possible
-# 
-def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
-    if ca.radius == cb.radius:
-        solType = tangentShape.parallel
-    else:
-        solType = tangentShape.divergent
-    # sums done from small circle to big circle
-    if ca.radius < cb.radius:
-        csmall = ca
-        cbig = cb
-    else:
-        csmall = cb
-        cbig = ca
+#  given 2 circles (1st argument smaller circle)
+#  return their respective placement
+#
+def getPlacement(csmall: Circle,cbig: Circle):
     if csmall.center.x == cbig.center.x:   # same X, check y
         if csmall.center.y > cbig.center.y:
             csPlace = smallCirclePlacement.AboveSameX
@@ -122,6 +169,25 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
             csPlace = smallCirclePlacement.RightAbove
     else:
         csPlace = smallCirclePlacement.RightBelow
+    return csPlace
+#
+#  Examine circles to determine solution strategy
+#  No sanity checks done to see if solution possible
+# 
+def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
+    if ca.radius == cb.radius:
+        solType = tangentShape.parallel
+    else:
+        solType = tangentShape.divergent
+    # sums done from small circle to big circle
+    if ca.radius < cb.radius:
+        csmall = ca
+        cbig = cb
+    else:
+        csmall = cb
+        cbig = ca
+    # get placement for calculation strategy
+    csPlace = getPlacement(csmall,cbig)
     print(str(solType)+','+str(csPlace))
     if solType == tangentShape.parallel:
         print('Parallel TBD')
@@ -169,14 +235,12 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
                 endh2 = completeLine(csmall.center,a1 + a2 ,h2)
                 side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
                 tpoints.append(side)
-            return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]
-            
+            return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]            
+#
 #   Given the starting point of a line, its angle to the X axis (radian) and length
 #   Calculate the end point
 #
-def completeLine(start,angle,length):  # radians
-# do sanity checks on paramaters if you are pedantic
-#    print('calc on line angle '+"{:.4f}".format(math.degrees(angle)))
+def completeLine(start: Point,angle,length):  # radians
     op = length * sin(angle)
     ad = length * cos(angle)
     return Point(start.x + ad, start.y + op)
