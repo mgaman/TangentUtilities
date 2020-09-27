@@ -6,7 +6,7 @@ from checklefttangentdiv import checkLeftTangents
 from svgTest import testSVGLeft
 import checkRectangle
 from checkRectangle import *
-
+from checkTriangle import *
 #checkTangentTypes()
 #checkParallelPlacements()
 #checkDivergentPlacements()
@@ -14,4 +14,6 @@ from checkRectangle import *
 #testSVGLeft()
 #checkVertical()
 #checkHorizontal()
-check45()
+#check45()
+checkTriangles()
+
