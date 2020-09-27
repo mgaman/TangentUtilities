@@ -8,6 +8,36 @@ from enum import Enum
 import math
 from math import sin,cos,tan,acos,asin,atan
 
+class buildDirection(Enum):
+    clockwise = 2
+    anticlockwise = 3
+class smallCirclePlacement(Enum):
+    LeftSameY = 0
+    RightSameY = 1
+    AboveSameX = 2
+    BelowSameX = 3
+    LeftAbove = 4
+    LeftBelow = 5
+    RightAbove = 6
+    RightBelow = 7
+class tangentShape(Enum):
+    parallel = 0
+    divergent = 1
+    convergent = 2
+class tangentAvailable(Enum):
+    noTangents = 0   # 1 circle inside the other. not touching
+    single = 1       # 1 circle inside the other. touch 1 point
+    twoExternalNoInternal = 2  # circles overlay, touch at 2 points
+    twoExternalSingleInternal = 3 # circles adjacent, touch at 1 point
+    twoExternalTwoInternal = 4 # circles adjacent, no touching
+class tangentType(Enum):
+    Internal = 1
+    External = 2
+
+#
+#   Given the starting point of a line, its angle to the X axis (radian) and length
+#   Calculate the end point
+#
 class Point:
     def __init__(self,x,y):
 	# parameters must be integer or float
@@ -16,6 +46,10 @@ class Point:
             self.y = y
         else:
             print('Point values must be integer or float')
+def completeLine(start: Point,angle,len):  # radians
+    op = len * sin(angle)
+    ad = len * cos(angle)
+    return Point(start.x + ad, start.y + op)
 class Line:
     def __init__(self,begin,end):
     # parameters must be points
@@ -59,14 +93,11 @@ class Circle:
             self.center = c
         else:
             print ('Circle values must be a number and a point')
-class rectangleDirection(Enum):
-    clockwise = 2
-    anticlockwise = 3
 class Rectangle:
-    def __init__(self,line0: Line,line1length,direction:rectangleDirection ):  # line0,line1 always perpendicular
+    def __init__(self,line0: Line,line1length,direction:buildDirection ):  # line0,line1 always perpendicular
         self.sides = [line0]
         self.side1length = line1length
-        if direction == rectangleDirection.clockwise:
+        if direction == buildDirection.clockwise:
             self.angleIncrement = -math.radians(90)
         else:
             self.angleIncrement = math.radians(90)
@@ -93,28 +124,32 @@ class Rectangle:
             strs.append('Line '+ str(i)+': begin x '+'{:.4f}'.format(self.sides[i].begin.x)+',y '+'{:.4f}'.format(self.sides[i].begin.y)+' end x '+"{:.4f}".format(self.sides[i].end.x)+',y '+"{:.4f}".format(self.sides[i].end.y))
             strs.append('>>> length '+'{:.4f}'.format(self.sides[i].length)+' slope '+'{:.4f}'.format(math.degrees(self.sides[i].slope)))
         return strs
-class smallCirclePlacement(Enum):
-    LeftSameY = 0
-    RightSameY = 1
-    AboveSameX = 2
-    BelowSameX = 3
-    LeftAbove = 4
-    LeftBelow = 5
-    RightAbove = 6
-    RightBelow = 7
-class tangentShape(Enum):
-    parallel = 0
-    divergent = 1
-    convergent = 2
-class tangentAvailable(Enum):
-    noTangents = 0   # 1 circle inside the other. not touching
-    single = 1       # 1 circle inside the other. touch 1 point
-    twoExternalNoInternal = 2  # circles overlay, touch at 2 points
-    twoExternalSingleInternal = 3 # circles adjacent, touch at 1 point
-    twoExternalTwoInternal = 4 # circles adjacent, no touching
-class tangentType(Enum):
-    Internal = 1
-    External = 2
+#
+#  Construct a right angled triangle from its parts
+#  could be adjacent + length of opposite
+#           opposite + length of adjacent
+#  calculate remain lines including hypoteneuse and angle between given line and hypoteneuse
+class rightTriangle:
+    def __init__(self,**args):
+        self.properties = args    # make a dictionary of given properties
+        if self.properties['direction'] == buildDirection.clockwise:
+            angIncrement = -math.radians(90)
+        else:
+            angIncrement = math.radians(90)
+        if 'adjacent' in self.properties:
+            if 'oppositeLength' in self.properties:
+                # calculate end point of opposite
+                pt = completeLine(self.properties['adjacent'].end,self.properties['adjacent'].slope+angIncrement,self.properties['oppositeLength'])
+                self.properties['opposite'] = Line(self.properties['adjacent'].end,pt)
+                # now compute hypoteneuse
+                self.properties['hypoteneuse'] = Line(pt,self.properties['adjacent'].begin)
+        self.properties['theta'] = math.atan(self.properties['opposite'].length/self.properties['adjacent'].length)
+    def toString(self):
+        ss =  'hypoteneuse begin x:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.y)
+        ss = ss + ' end x:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.y)
+        ss = ss + ' length '+'{:.4f}'.format(self.properties['hypoteneuse'].length)
+        ss = ss + ' theta '+'{:.4f}'.format(math.degrees(self.properties['theta']))
+        return ss
 #
 #  Discover how many tangents exist between 2 circles
 #  
@@ -238,11 +273,3 @@ def Tangentsold(ca : Circle,cb : Circle,solution=tangentType.External):
             return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]            
 def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     return
-#
-#   Given the starting point of a line, its angle to the X axis (radian) and length
-#   Calculate the end point
-#
-def completeLine(start: Point,angle,len):  # radians
-    op = len * sin(angle)
-    ad = len * cos(angle)
-    return Point(start.x + ad, start.y + op)

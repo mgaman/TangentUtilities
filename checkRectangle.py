@@ -3,11 +3,11 @@ from tangentUtilities import *
 
 def complete(bg,en):
     ln0 = Line(bg,en)
-    rc  = Rectangle(ln0,5,rectangleDirection.clockwise)
+    rc  = Rectangle(ln0,5,buildDirection.clockwise)
     strs = rc.complete()
     for s in rc.toString():
         print(s)
-    rc  = Rectangle(ln0,5,rectangleDirection.anticlockwise)
+    rc  = Rectangle(ln0,5,buildDirection.anticlockwise)
     rc.complete()
     for s in rc.toString():
         print(s)
