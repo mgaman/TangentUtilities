@@ -33,7 +33,6 @@ class tangentAvailable(Enum):
 class tangentType(Enum):
     Internal = 1
     External = 2
-
 #
 #   Given the starting point of a line, its angle to the X axis (radian) and length
 #   Calculate the end point
@@ -47,6 +46,7 @@ class Point:
         else:
             print('Point values must be integer or float')
 def completeLine(start: Point,angle,len):  # radians
+    angle = angle % (math.pi*2)   # if angle > 360
     op = len * sin(angle)
     ad = len * cos(angle)
     return Point(start.x + ad, start.y + op)
@@ -85,6 +85,12 @@ class Line:
             self.slope =an0
         else:
             print('Line values must be 2 points')
+    def reverse(self):  # swap begin, end and reavaluate slope
+        temp = self.begin
+        self.begin = self.end
+        self.end = temp
+        self.slope = self.slope + math.radians(180)
+        return self
 class Circle:
     def __init__(self,c,r):
     # parameters must be numeric and a point
@@ -126,24 +132,21 @@ class Rectangle:
         return strs
 #
 #  Construct a right angled triangle from its parts
-#  could be adjacent + length of opposite
-#           opposite + length of adjacent
-#  calculate remain lines including hypoteneuse and angle between given line and hypoteneuse
+#  If we know 1 complete line definition and length of 2nd line, all the rest can be calculated
 class rightTriangle:
     def __init__(self,**args):
         self.properties = args    # make a dictionary of given properties
-        if self.properties['direction'] == buildDirection.clockwise:
-            angIncrement = -math.radians(90)
-        else:
-            angIncrement = math.radians(90)
-        if 'adjacent' in self.properties:
+        if 'hypoteneuse' in self.properties:
             if 'oppositeLength' in self.properties:
-                # calculate end point of opposite
-                pt = completeLine(self.properties['adjacent'].end,self.properties['adjacent'].slope+angIncrement,self.properties['oppositeLength'])
-                self.properties['opposite'] = Line(self.properties['adjacent'].end,pt)
-                # now compute hypoteneuse
-                self.properties['hypoteneuse'] = Line(pt,self.properties['adjacent'].begin)
-        self.properties['theta'] = math.atan(self.properties['opposite'].length/self.properties['adjacent'].length)
+                adjacentLength = math.sqrt(self.properties['hypoteneuse'].length**2 - self.properties['oppositeLength']**2)
+                a1 = math.atan(self.properties['oppositeLength']/adjacentLength)  # angle opposite 'opposite'
+                if self.properties['direction'] == buildDirection.clockwise:
+                    a1 = -a1
+                # calculate adjacent line
+                pt = completeLine(self.properties['hypoteneuse'].begin,a1+self.properties['hypoteneuse'].slope,adjacentLength)
+                self.properties['adjacent'] = Line(self.properties['hypoteneuse'].begin,pt).reverse()  # keep lines in same direction
+                # complete opposite line
+                self.properties['opposite'] = Line(self.properties['hypoteneuse'].end,self.properties['adjacent'].begin)
     def toString(self):
         ss =  'hypoteneuse begin x:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.y)
         ss = ss + ' end x:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.y)
@@ -272,4 +275,37 @@ def Tangentsold(ca : Circle,cb : Circle,solution=tangentType.External):
                 tpoints.append(side)
             return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]            
 def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
+    if ca.radius == cb.radius:
+        solType = tangentShape.parallel
+    else:
+        solType = tangentShape.divergent
+    # sums done from small circle to big circle
+    if ca.radius < cb.radius:
+        csmall = ca
+        cbig = cb
+    else:
+        csmall = cb
+        cbig = ca
+    if solType == tangentShape.divergent:
+        # H1 is line joining the centers
+        centerSmall=Point(csmall.center.x,csmall.center.y)
+        centerBig=Point(cbig.center.x,cbig.center.y)
+        H1 = Line(centerSmall,centerBig)
+        # 1st triangle csmall center to cbig radius in anticlockwise direction
+        tr1 = rightTriangle(hypoteneuse=H1,oppositeLength=cbig.radius - csmall.radius,direction=buildDirection.anticlockwise)
+        # now make rectangle from hypoteneuse
+        rc1 = Rectangle(tr1.properties['adjacent'].reverse(),csmall.radius,buildDirection.anticlockwise)
+        rc1.complete()
+        # 1st tangent is third line of rectangle
+        # 2nd triangle in clockwise direction
+        tr2 = rightTriangle(hypoteneuse=H1,oppositeLength=cbig.radius - csmall.radius,direction=buildDirection.clockwise)
+        # now make rectangle from hypoteneuse
+        rc2 = Rectangle(tr2.properties['adjacent'].reverse(),csmall.radius,buildDirection.clockwise)
+        rc2.complete()
+        # 1st tangent is third line of rectangle
+        # 2nd triangle in clockwise direction
+        return [rc1.sides[2],rc2.sides[2]]
+    else:
+        print('Parallel tbd')
+        return None
     return
