@@ -12,5 +12,6 @@ from checkRectangle import *
 #checkDivergentPlacements()
 #checkLeftTangents()
 #testSVGLeft()
-checkVertical()
+#checkVertical()
 #checkHorizontal()
+check45()

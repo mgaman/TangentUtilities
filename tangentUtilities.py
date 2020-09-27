@@ -25,24 +25,24 @@ class Line:
             self.length = math.sqrt((self.end.y - self.begin.y)**2 + (self.end.x - self.begin.x)**2)
             opposite = self.end.y - self.begin.y
             adjacent = self.end.x - self.begin.x
-            if opposite == 0:  # line is horizontal
+            if math.fabs(opposite) < 0.0001:  # line is horizontal   cannot check for == 0
                 if self.begin.x < self.end.x: # extends to the right
                     an0 = math.radians(0)
                 else:
                     an0 = math.radians(180)
-            elif adjacent == 0:  # line is vertical
+            elif math.fabs(adjacent) < 0.0001:  # line is vertical
                 if self.begin.y < self.end.y: # extends upwards
                     an0 = math.radians(90)
                 else:
                     an0 = math.radians(270)
-            elif self.begin.x > self.end.x:  # extends to the right
+            elif self.begin.x < self.end.x:  # extends to the right
                 an0 = math.atan(abs(opposite)/abs(adjacent))
-                if self.begin.y > self.end.y: # and up (0-90 degrees)
+                if self.begin.y < self.end.y: # and up (0-90 degrees)
                     pass  # same an0
                 else:                                 # and down 270 to 360 
                     an0 = 360 - math.degrees(an0)
                     an0 = math.radians(an0)
-            elif self.begin.y > self.end.y:   # extends to the left and up 90 to 180
+            elif self.begin.y < self.end.y:   # extends to the left and up 90 to 180
                 an0 = math.atan(abs(opposite)/abs(adjacent))
                 an0 = math.radians(180) - an0
             else:                                     # extends to the left and down 180 to 270
