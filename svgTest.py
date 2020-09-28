@@ -112,7 +112,18 @@ def testSVGAllbig():
         dwg.add(ls[0])
         dwg.add(ls[1])
         dwg.save() 
-
+#
+#  build a typical carburettor to inlet manifold gasket
+#  A single hole in the middle for the venturi and 2 screw holes to the left and right
+#  The centre of the gasket set at (0,0) with 3 holes in a straight line on the X axis.
+#  Build a border around the holes at a distance of 'shoulder'.
+# 
+#  Note that this example uses the default dimension unit of pixels. The svgwrite macros on 'mm' or 'inch' 
+#  can be used dimensions where needed e.g
+#
+#  from svgwrite import inch
+#  venturiHole = dwg.circle([0,0],venturiRadius*inch,fill='none',stroke='blue',stroke_width=.1)
+#
 def gasket():
     venturiRadius = 20
     screwRadius = 5
