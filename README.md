@@ -22,4 +22,5 @@ In the case of the 2 radii being different the tangent diverges from H1. My meth
 Knowing the the basic properties of the rectangle, first line begin and end points and the length of the second line, it is simple to calculate the properties of all the lines of the rectangle.
 The tanget is the 3rd line in the array of 4 lines.
 The solution must be applied twice for the 2 tangents, once by calculating the rectangle in a clockwise direction and then in an antoclockwise direction
-
+## Future
+This is a work in progress. Superfluous code will be eliminated and the test scripts cleaned up. I welcome feedback, especially bugs. 
