@@ -18,8 +18,8 @@ def svgTangents(ca,cb):  # arguments are svg shapes - Circle
     dwg = svgwrite.Drawing()
     b0 = [ls[0].begin.x,ls[0].begin.y]
     e0 = [ls[0].end.x,ls[0].end.y]
-    ln0 = dwg.line(b0,e0,fill='none',stroke='green',stroke_width=.1)
+    ln0 = dwg.line(b0,e0)
     b1 = [ls[1].begin.x,ls[1].begin.y]
     e1 = [ls[1].end.x,ls[1].end.y]
-    ln1 = dwg.line(b1,e1,fill='none',stroke='blue',stroke_width=.1)
+    ln1 = dwg.line(b1,e1)
     return [ln0,ln1]
