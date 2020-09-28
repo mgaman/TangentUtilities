@@ -1,5 +1,5 @@
 import svgwrite
-from svgTangent import svgTangents
+from svgTangent import *
 import math
 from math import cos,sin,radians
 
@@ -131,24 +131,55 @@ def gasket():
     dwg.add(leftScrew)
     dwg.add(righttScrew)
     # left/right edges
-    dwg.add(leftShoulder)
-    dwg.add(rightShoulder)
+    #dwg.add(leftShoulder)
+    #dwg.add(rightShoulder)
     # top/bottom edge
-    dwg.add(outerShoulder)
+    #dwg.add(outerShoulder)
     # join up the edges
-    ls = svgTangents(leftShoulder,outerShoulder)
-    dwg.add(ls[0])
-    dwg.add(ls[1])
-    ls = svgTangents(rightShoulder,outerShoulder)
+    lsleft = svgTangents(leftShoulder,outerShoulder)
     # decorate the tangents as you wish
-    ls[0]['fill'] = 'none'
-    ls[0]['stroke'] = 'orange'
-    ls[0]['stroke-width'] = strokeSize
-    ls[1]['fill'] = 'none'
-    ls[1]['stroke'] = 'purple'
-    ls[1]['stroke-width'] = strokeSize
-    dwg.add(ls[0])
-    dwg.add(ls[1])
+    lsleft[0]['fill'] = 'none'
+    lsleft[0]['stroke'] = 'orange'
+    lsleft[0]['stroke-width'] = 0.1
+    lsleft[1]['fill'] = 'none'
+    lsleft[1]['stroke'] = 'purple'
+    lsleft[1]['stroke-width'] = 0.1
+    dwg.add(lsleft[0])
+    dwg.add(lsleft[1])
+    # build arc from left shoulder
+    p = svgArcBuild(leftShoulder,lsleft,beginFlag=False,largeFlag=False)
+    p['fill'] = 'none'
+    p['stroke'] = 'orange'
+    p['stroke-width'] = 0.1
+    dwg.add(p)
+    lsright = svgTangents(rightShoulder,outerShoulder)
+    # decorate the tangents as you wish
+    lsright[0]['fill'] = 'none'
+    lsright[0]['stroke'] = 'orange'
+    lsright[0]['stroke-width'] = 0.1
+    lsright[1]['fill'] = 'none'
+    lsright[1]['stroke'] = 'purple'
+    lsright[1]['stroke-width'] = 0.1
+    dwg.add(lsright[0])
+    dwg.add(lsright[1])
+    # build arc from right shoulder
+    p = svgArcBuild(rightShoulder,lsright,beginFlag=False,largeFlag=False)
+    p['fill'] = 'none'
+    p['stroke'] = 'orange'
+    p['stroke-width'] = 0.1
+    dwg.add(p)
+    # build arc from outershoulder and top tangents
+    p = svgArcBuild(outerShoulder,[lsright[0],lsleft[1]],largeFlag=False,leftFlag=False)
+    p['fill'] = 'none'
+    p['stroke'] = 'green'
+    p['stroke-width'] = 0.2
+    dwg.add(p)
+    # build arc from outershoulder and bottom tangents
+    p = svgArcBuild(outerShoulder,[lsright[1],lsleft[0]],largeFlag=False)
+    p['fill'] = 'none'
+    p['stroke'] = 'green'
+    p['stroke-width'] = 0.2
+    dwg.add(p)
     dwg.save()
 
 def testParallel():
