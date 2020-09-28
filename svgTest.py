@@ -78,7 +78,7 @@ def testSVGAllsmall():
         ls = svgTangents(csmall,cbig)
         # decorate the tangents as you wish
         ls[0]['fill'] = 'none'
-        ls[0]['stroke'] = 'orange'
+        ls[0]['stroke'] = 'green'
         ls[0]['stroke-width'] = 0.1
         ls[1]['fill'] = 'none'
         ls[1]['stroke'] = 'purple'
@@ -153,8 +153,16 @@ def gasket():
 
 def testParallel():
     dwg = svgwrite.Drawing('parallel.svg')
-    csmall=dwg.circle([1,10],3,fill='none',stroke='blue',stroke_width=.1) 
-    cbig=dwg.circle([9,10],3,fill='none',stroke='red',stroke_width=.1)
+    # make slight difference in radii to see if zero_check works
+    small_radius = 3
+    big_radius = 3
+    csmall=dwg.circle([1,10],small_radius,fill='none',stroke='blue',stroke_width=.1)
+    #small_radius = small_radius + 0.00005
+#    big_radius = small_radius  + 0.001
+#    big_radius = small_radius  + 0.001
+#    big_radius = small_radius  + 0.1
+    big_radius = small_radius  - 0.5
+    cbig=dwg.circle([9,10],big_radius,fill='none',stroke='red',stroke_width=.1)
     # add to drawing
     ls = svgTangents(csmall,cbig)
     # decorate the tangents as you wish

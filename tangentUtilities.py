@@ -1,12 +1,15 @@
 #
 #  Author: David Henry  https://github.com/mgaman
 #
-#  This library uses its own generic types of Point, Line and Circle
+#  This library uses its own generic types of Point, Line, Circle, Rectangle and rightTriangle
+#
 #  Use my svgTangent library to interface to svgwrite
 #
 from enum import Enum
 import math
 from math import sin,cos,tan,acos,asin,atan
+
+zero_check = 0.0001   # needed for checking equivalences or zero between floats
 
 class buildDirection(Enum):
     clockwise = 2
@@ -108,7 +111,7 @@ class Rectangle:
         else:
             self.angleIncrement = math.radians(90)
     # given the initial data, calculate the remaining lines and corners
-    def complete(self):
+#    def complete(self):
         # length irrespective of orientation of the line however angle of slope (an0) is
         side0length = self.sides[0].length
         an0 = self.sides[0].slope
@@ -213,7 +216,9 @@ def getPlacement(csmall: Circle,cbig: Circle):
 #  No sanity checks done to see if solution possible
 # 
 def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
-    if ca.radius == cb.radius:
+    global zero_check
+    if abs(ca.radius - cb.radius) < zero_check:
+#    if ca.radius == cb.radius:
         solType = tangentShape.parallel
     else:
         solType = tangentShape.divergent
@@ -231,7 +236,7 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     # For the divergent solution we divide the quadrangle into a rectangle and a triangle
     # This is not necessary for parallel as they are essentially the same thing
     #
-    
+
     # H1 is the line joining the centers
     centerSmall=Point(csmall.center.x,csmall.center.y)
     centerBig=Point(cbig.center.x,cbig.center.y)
@@ -247,8 +252,11 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     else:
         rc1 = Rectangle(H1,csmall.radius,buildDirection.anticlockwise)
         rc2 = Rectangle(H1,csmall.radius,buildDirection.clockwise)
-    rc1.complete()
-    rc2.complete()
+    #rc1.complete()
+    #rc2.complete()
     # tangent is third line of rectangle
     return [rc1.sides[2],rc2.sides[2]]
-    
+def setZeroCheck(f):
+    global zero_check
+    zero_check = f
+  
