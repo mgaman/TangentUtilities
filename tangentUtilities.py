@@ -212,68 +212,6 @@ def getPlacement(csmall: Circle,cbig: Circle):
 #  Examine circles to determine solution strategy
 #  No sanity checks done to see if solution possible
 # 
-def Tangentsold(ca : Circle,cb : Circle,solution=tangentType.External):
-    if ca.radius == cb.radius:
-        solType = tangentShape.parallel
-    else:
-        solType = tangentShape.divergent
-    # sums done from small circle to big circle
-    if ca.radius < cb.radius:
-        csmall = ca
-        cbig = cb
-    else:
-        csmall = cb
-        cbig = ca
-    # get placement for calculation strategy
-    csPlace = getPlacement(csmall,cbig)
-    print(str(solType)+','+str(csPlace))
-    if solType == tangentShape.parallel:
-        print('Parallel TBD')
-        return []
-    else:   # divergent   
-        # H1 is line joining centers, draw right angled triangle where H1 is hypoteneuse
-        if csPlace == smallCirclePlacement.LeftAbove or csPlace == smallCirclePlacement.LeftSameY:
-            opposite = cbig.center.y - csmall.center.y
-            adjacent = cbig.center.x - csmall.center.x
-            h1 = math.sqrt(opposite**2 + adjacent**2)
-            # a1 angle of hypoteneuse anticlockwise from x axis
-            a1 = math.atan(abs(opposite)/abs(adjacent))
-            # h2 is hypoteneuse of triangle where h1 is adjacent and opposite is on cbig radius
-            h2 = math.sqrt(pow(h1,2) - pow(cbig.radius - csmall.radius,2))
-            # angle a2 between h1 and h2
-            a2 = math.acos(h2/h1)
-            # we now know 1 point of a rectangle (csmall center), 2 sides csmall radius and H2
-            # and angle of H2 (a1 ± a2)
-            # calculate the other 3 corners and from there the tangent (which is the opposite 
-            # side to H2
-            tpoints = []
-            if opposite >= 0:
-                # 1st tangent
-                side = completeLine(csmall.center,a1 + a2 + math.radians(90),csmall.radius)
-                tpoints.append(side)
-                endh2 = completeLine(csmall.center,a1 + a2 ,h2)
-                side = completeLine(endh2,a1 + a2 + math.radians(90),csmall.radius)
-                tpoints.append(side)
-                # second tangent
-                side = completeLine(csmall.center,a1 - a2 - math.radians(90),csmall.radius)
-                tpoints.append(side)
-                endh2 = completeLine(csmall.center,a1 - a2 ,h2)
-                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
-                tpoints.append(side)
-            else:
-                # 1st tangent
-                side = completeLine(csmall.center,a1 - a2 - math.radians(90),csmall.radius)
-                tpoints.append(side)
-                endh2 = completeLine(csmall.center,a1 - a2 ,h2)
-                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
-                tpoints.append(side)
-                # 2nd tangent
-                side = completeLine(csmall.center,a1 - a2 + math.radians(90),csmall.radius)
-                tpoints.append(side)
-                endh2 = completeLine(csmall.center,a1 + a2 ,h2)
-                side = completeLine(endh2,a1 - a2 - math.radians(90),csmall.radius)
-                tpoints.append(side)
-            return [Line(tpoints[0],tpoints[1]), Line(tpoints[2],tpoints[3])]            
 def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     if ca.radius == cb.radius:
         solType = tangentShape.parallel
@@ -286,26 +224,31 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     else:
         csmall = cb
         cbig = ca
+    #
+    # We are working on the quadrangle defined by the 2 circle centers and the contact points of the tangent
+    # There are 2 quadrangles, one to each tangent
+    #
+    # For the divergent solution we divide the quadrangle into a rectangle and a triangle
+    # This is not necessary for parallel as they are essentially the same thing
+    #
+    
+    # H1 is the line joining the centers
+    centerSmall=Point(csmall.center.x,csmall.center.y)
+    centerBig=Point(cbig.center.x,cbig.center.y)
+    H1 = Line(centerSmall,centerBig)
     if solType == tangentShape.divergent:
-        # H1 is line joining the centers
-        centerSmall=Point(csmall.center.x,csmall.center.y)
-        centerBig=Point(cbig.center.x,cbig.center.y)
-        H1 = Line(centerSmall,centerBig)
         # 1st triangle csmall center to cbig radius in anticlockwise direction
         tr1 = rightTriangle(hypoteneuse=H1,oppositeLength=cbig.radius - csmall.radius,direction=buildDirection.anticlockwise)
-        # now make rectangle from hypoteneuse
+        # now make rectangle from adjacent
         rc1 = Rectangle(tr1.properties['adjacent'].reverse(),csmall.radius,buildDirection.anticlockwise)
-        rc1.complete()
-        # 1st tangent is third line of rectangle
-        # 2nd triangle in clockwise direction
+        # repeat for the other side
         tr2 = rightTriangle(hypoteneuse=H1,oppositeLength=cbig.radius - csmall.radius,direction=buildDirection.clockwise)
-        # now make rectangle from hypoteneuse
         rc2 = Rectangle(tr2.properties['adjacent'].reverse(),csmall.radius,buildDirection.clockwise)
-        rc2.complete()
-        # 1st tangent is third line of rectangle
-        # 2nd triangle in clockwise direction
-        return [rc1.sides[2],rc2.sides[2]]
     else:
-        print('Parallel tbd')
-        return None
-    return
+        rc1 = Rectangle(H1,csmall.radius,buildDirection.anticlockwise)
+        rc2 = Rectangle(H1,csmall.radius,buildDirection.clockwise)
+    rc1.complete()
+    rc2.complete()
+    # tangent is third line of rectangle
+    return [rc1.sides[2],rc2.sides[2]]
+    

@@ -153,17 +153,17 @@ def gasket():
 
 def testParallel():
     dwg = svgwrite.Drawing('parallel.svg')
-    csmall=dwg.circle([1,10],6,fill='none',stroke='blue',stroke_width=.1) 
-    cbig=dwg.circle([9,10],6,fill='none',stroke='red',stroke_width=.1)
+    csmall=dwg.circle([1,10],3,fill='none',stroke='blue',stroke_width=.1) 
+    cbig=dwg.circle([9,10],3,fill='none',stroke='red',stroke_width=.1)
     # add to drawing
     ls = svgTangents(csmall,cbig)
     # decorate the tangents as you wish
     ls[0]['fill'] = 'none'
     ls[0]['stroke'] = 'black'
-    ls[0]['stroke-width'] = strokeSize
+    ls[0]['stroke-width'] = 0.1
     ls[1]['fill'] = 'none'
     ls[1]['stroke'] = 'black'
-    ls[1]['stroke-width'] = strokeSize
+    ls[1]['stroke-width'] = 0.1
     dwg.add(csmall)
     dwg.add(cbig)
     dwg.add(ls[0])
