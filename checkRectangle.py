@@ -4,13 +4,15 @@ from tangentUtilities import *
 def complete(bg,en):
     ln0 = Line(bg,en)
     rc  = Rectangle(ln0,5,buildDirection.clockwise)
-    strs = rc.complete()
-    for s in rc.toString():
-        print(s)
+    #strs = rc.complete()
+    #for s in rc.toString():
+    #    print(s)
+    print(rc)
     rc  = Rectangle(ln0,5,buildDirection.anticlockwise)
-    rc.complete()
-    for s in rc.toString():
-        print(s)
+    #rc.complete()
+    #for s in rc.toString():
+    #    print(s)
+    print(rc)
 
 def checkVertical():
     bg = Point(0,0)

@@ -7,6 +7,12 @@ from svgTest import *
 import checkRectangle
 from checkRectangle import *
 from checkTriangle import *
+import checkShapes
+from checkShapes import *
+
+checkLines()
+checkCircle()
+checkPoint()
 #checkTangentTypes()
 #checkParallelPlacements()
 #checkDivergentPlacements()
@@ -14,7 +20,7 @@ from checkTriangle import *
 #testSVGLeft()
 #testSVGRight()
 #testSVGAboveBelow()
-testSVGAllsmall()
+#testSVGAllsmall()
 #testSVGAllbig()
 #gasket()
 #testOverlap()

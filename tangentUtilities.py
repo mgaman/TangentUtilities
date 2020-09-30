@@ -1,9 +1,9 @@
 #
 #  Author: David Henry  https://github.com/mgaman
 #
-#  This library uses its own generic types of Point, Line, Circle, Rectangle and rightTriangle
+#  This library uses its own generic classes of Point, Line, Circle, Rectangle and rightTriangle
 #
-#  Use my svgTangent library to interface to svgwrite
+#  Use my svgTangent module to interface to svgwrite
 #
 from enum import Enum
 import math
@@ -14,15 +14,6 @@ zero_check = 0.0001   # needed for checking equivalences or zero between floats
 class buildDirection(Enum):
     clockwise = 2
     anticlockwise = 3
-class smallCirclePlacement(Enum):
-    LeftSameY = 0
-    RightSameY = 1
-    AboveSameX = 2
-    BelowSameX = 3
-    LeftAbove = 4
-    LeftBelow = 5
-    RightAbove = 6
-    RightBelow = 7
 class tangentShape(Enum):
     parallel = 0
     divergent = 1
@@ -36,10 +27,6 @@ class tangentAvailable(Enum):
 class tangentType(Enum):
     Internal = 1
     External = 2
-#
-#   Given the starting point of a line, its angle to the X axis (radian) and length
-#   Calculate the end point
-#
 class Point:
     def __init__(self,x,y):
 	# parameters must be integer or float
@@ -48,6 +35,12 @@ class Point:
             self.y = y
         else:
             print('Point values must be integer or float')
+    def __str__(self):
+        return 'x:'+str(self.x)+' y:'+str(self.y)
+#
+#   Given the starting point of a line, its angle to the X axis (radian) and length
+#   Calculate the end point
+#
 def completeLine(start: Point,angle,len):  # radians
     angle = angle % (math.pi*2)   # if angle > 360
     op = len * sin(angle)
@@ -88,11 +81,16 @@ class Line:
             self.slope =an0
         else:
             print('Line values must be 2 points')
+    def __str__(self):
+        ss =  'begin x:'+str(self.begin.x)+' y:'+str(self.begin.y)
+        ss =  ss + ' end x:'+str(self.end.x)+' y:'+str(self.end.y)        
+        ss = ss + " slope:"+str(math.degrees(self.slope)) + ' degrees'
+        return ss
     def reverse(self):  # swap begin, end and reavaluate slope
         temp = self.begin
         self.begin = self.end
         self.end = temp
-        self.slope = self.slope + math.radians(180)
+        self.slope = (self.slope + math.radians(180))%(math.pi*2)
         return self
 class Circle:
     def __init__(self,c,r):
@@ -102,6 +100,8 @@ class Circle:
             self.center = c
         else:
             print ('Circle values must be a number and a point')
+    def __str__(self):
+        return 'centre x:'+str(self.center.x)+' y:'+str(self.center.y)+' radius:'+str(self.radius)
 class Rectangle:
     def __init__(self,line0: Line,line1length,direction:buildDirection ):  # line0,line1 always perpendicular
         self.sides = [line0]
@@ -111,7 +111,6 @@ class Rectangle:
         else:
             self.angleIncrement = math.radians(90)
     # given the initial data, calculate the remaining lines and corners
-#    def complete(self):
         # length irrespective of orientation of the line however angle of slope (an0) is
         side0length = self.sides[0].length
         an0 = self.sides[0].slope
@@ -127,11 +126,13 @@ class Rectangle:
         ann = ann + self.angleIncrement
         pt = completeLine(self.sides[2].end,ann,self.side1length)
         self.sides.append(Line(self.sides[2].end,pt))
-    def toString(self):
-        strs = []
+    def __str__(self):
+        strs = ''
         for i in range(len(self.sides)):
-            strs.append('Line '+ str(i)+': begin x '+'{:.4f}'.format(self.sides[i].begin.x)+',y '+'{:.4f}'.format(self.sides[i].begin.y)+' end x '+"{:.4f}".format(self.sides[i].end.x)+',y '+"{:.4f}".format(self.sides[i].end.y))
-            strs.append('>>> length '+'{:.4f}'.format(self.sides[i].length)+' slope '+'{:.4f}'.format(math.degrees(self.sides[i].slope)))
+            strs = strs + 'Line '+ str(i)+': begin x '+'{:.4f}'.format(self.sides[i].begin.x)+',y '+'{:.4f}'.format(self.sides[i].begin.y)+' end x '+"{:.4f}".format(self.sides[i].end.x)+',y '+"{:.4f}".format(self.sides[i].end.y)
+            strs = strs + '\n'
+            strs = strs + '>>> length '+'{:.4f}'.format(self.sides[i].length)+' slope '+'{:.4f}'.format(math.degrees(self.sides[i].slope))
+            strs = strs + '\n'
         return strs
 #
 #  Construct a right angled triangle from its parts
@@ -150,11 +151,24 @@ class rightTriangle:
                 self.properties['adjacent'] = Line(self.properties['hypoteneuse'].begin,pt).reverse()  # keep lines in same direction
                 # complete opposite line
                 self.properties['opposite'] = Line(self.properties['hypoteneuse'].end,self.properties['adjacent'].begin)
-    def toString(self):
-        ss =  'hypoteneuse begin x:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].begin.y)
-        ss = ss + ' end x:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.x)+' y:'+'{:.4f}'.format(self.properties['hypoteneuse'].end.y)
-        ss = ss + ' length '+'{:.4f}'.format(self.properties['hypoteneuse'].length)
-        ss = ss + ' theta '+'{:.4f}'.format(math.degrees(self.properties['theta']))
+        elif 'adjacent' in self.properties:
+            if 'oppositeLength' in self.properties:
+                hypoteneuseLength = math.sqrt(self.properties['adjacent'].length**2 + self.properties['oppositeLength']**2)
+                a1 = math.asin(self.properties['oppositeLength']/hypoteneuseLength)
+                if self.properties['direction'] == buildDirection.clockwise:
+                    a1 = -a1
+                # calculate opposite line
+                pt = completeLine(self.properties['adjacent'].end,a1+self.properties['adjacent'].slope,self.properties['oppositeLength'])
+                self.properties['opposite'] = Line(self.properties['adjacent'].end,pt).reverse()  # keep lines in same direction
+                # complete hypoteneuse
+                self.properties['hypoteneuse'] = Line(self.properties['opposite'].end,self.properties['adjacent'].begin)  # keep lines in same direction
+    def __str__(self):
+        ss = ''
+        for side in ['opposite','adjacent','hypoteneuse']:
+            ss =  ss + side + ' begin x:'+'{:.4f}'.format(self.properties[side].begin.x)+' y:'+'{:.4f}'.format(self.properties[side].begin.y)
+            ss = ss + ' end x:'+'{:.4f}'.format(self.properties[side].end.x)+' y:'+'{:.4f}'.format(self.properties[side].end.y)
+            ss = ss + ' length '+'{:.4f}'.format(self.properties[side].length)
+            ss = ss +'\n'
         return ss
 #
 #  Discover how many tangents exist between 2 circles
