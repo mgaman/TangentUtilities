@@ -252,8 +252,6 @@ def Tangents(ca : Circle,cb : Circle,solution=tangentType.External):
     else:
         rc1 = Rectangle(H1,csmall.radius,buildDirection.anticlockwise)
         rc2 = Rectangle(H1,csmall.radius,buildDirection.clockwise)
-    #rc1.complete()
-    #rc2.complete()
     # tangent is third line of rectangle
     return [rc1.sides[2],rc2.sides[2]]
 def setZeroCheck(f):

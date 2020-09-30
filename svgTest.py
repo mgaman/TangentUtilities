@@ -65,7 +65,7 @@ def testSVGAboveBelow():
 def testSVGAllsmall():
     dwg = svgwrite.Drawing('allinonesmall.svg')
     # single small circle
-    csmall=dwg.circle([0,0],1,fill='none',stroke='blue',stroke_width=.1) 
+    csmall=dwg.circle([20,20],1,fill='none',stroke='blue',stroke_width=.1) 
     dwg.add(csmall)
     hyp = 20
     for n in range(8):
